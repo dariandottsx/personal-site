@@ -8,7 +8,7 @@ const Contact = () => {
       </p>
       
       <p>
-        <a href="https://linkedin.com/in/darianpan">linkedin.com/in/darianpan</a>
+        <a href="https://linkedin.com/in/darianpan" target="_blank" rel="noopener noreferrer">linkedin.com/in/darianpan</a>
       </p>
     </section>
   )
