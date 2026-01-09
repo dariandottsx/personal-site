@@ -7,7 +7,9 @@ const Home = () => {
   return (
     <>
       <section>
-        <h1>I build systems that help ideas, creators, and people compound.</h1>
+        <h1>Darian Pan</h1>
+        
+        <h2>I build systems that help ideas, creators, and people compound.</h2>
         
         <p>I'm a high-agency operator obsessed with monetization, narrative, and turning ideas into momentum.</p>
       </section>
