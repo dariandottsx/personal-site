@@ -11,7 +11,7 @@ const Home = () => {
       <section>
         <h1>Darian Pan</h1>
         
-        <h2>I build systems that help creators and startups turn ideas into momentum.</h2>
+        <h2>I build products that help creators and startups turn ideas into momentum.</h2>
       </section>
       
       <Now />
