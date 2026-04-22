@@ -15,6 +15,7 @@ const BLOG_FETCH_TIMEOUT_MS = 2500
 const Home = () => {
   const [copied, setCopied] = useState(false)
   const [hoveredSocial, setHoveredSocial] = useState<string | null>(null)
+  const [hoveredAchievement, setHoveredAchievement] = useState<string | null>(null)
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
   const [blogError, setBlogError] = useState<string | null>(null)
   const [isLoadingBlog, setIsLoadingBlog] = useState(true)
@@ -25,19 +26,6 @@ const Home = () => {
     { label: 'X/Twitter', href: 'https://x.com/darian_pan' },
     { label: 'Instagram', href: 'https://www.instagram.com/dariandidwhat/' },
     { label: 'Podcast', href: 'https://podcasts.apple.com/us/podcast/truetalks/id1489817610' }
-  ]
-
-  const achievements = [
-    'Built my first invention at age 8',
-    'Started a YouTube channel and podcast at age 10',
-    'Won national martial arts gold at 14, then again at 15 and 16',
-    'Scaled a dropshipping store to five figures at 14',
-    'Built a global nonprofit serving 28 countries at 15',
-    'Published both a book and a research paper at 16',
-    'Launched two micro-startups at 16',
-    'Hosted weekly builder events since 17',
-    'Did engineering work for 6 startups at 18',
-    'Did design work for 2 startups at 18'
   ]
 
   const createRandomStar = (id: number) => {
@@ -254,7 +242,7 @@ const Home = () => {
             position: 'relative',
             zIndex: 60,
             isolation: 'isolate',
-            padding: '2.5rem 2rem 3rem',
+            padding: '3.25rem 2.4rem 0',
             maxWidth: '52rem',
             margin: '0 auto',
             textAlign: 'center'
@@ -282,7 +270,7 @@ const Home = () => {
           </h1>
           <p
             style={{
-              margin: '1rem 0 0',
+              margin: '1.25rem 0 0',
               color: 'rgba(241,245,249,0.9)',
               fontSize: 'clamp(1rem, 1.8vw, 1.45rem)',
               letterSpacing: '-0.02em',
@@ -297,8 +285,9 @@ const Home = () => {
               display: 'flex',
               flexWrap: 'wrap',
               justifyContent: 'center',
-              gap: '0.9rem',
-              marginTop: '1.8rem'
+              gap: '1.15rem',
+              marginTop: '2.2rem',
+              marginBottom: 0
             }}
           >
             {socials.map((social) => (
@@ -360,10 +349,10 @@ const Home = () => {
           </nav>
           <ul
             style={{
-              margin: '1rem auto 0',
+              margin: '2.6rem auto 2.6rem',
               paddingLeft: '1.35rem',
               display: 'grid',
-              gap: '0.55rem',
+              gap: '0.8rem',
               color: 'rgba(226,232,240,0.9)',
               fontSize: 'clamp(0.95rem, 1.3vw, 1.2rem)',
               letterSpacing: '-0.02em',
@@ -375,18 +364,179 @@ const Home = () => {
               textAlign: 'left'
             }}
           >
-            {achievements.map((item) => (
-              <li key={item} style={{ color: 'rgba(226,232,240,0.9)' }}>
-                {item}
-              </li>
-            ))}
+            <li
+              onMouseEnter={() => setHoveredAchievement('first invention')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === 'first invention'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === 'first invention' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Built my <strong>first invention</strong> at 8
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('3x martial arts')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === '3x martial arts'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === '3x martial arts' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Won <strong>3x world martial arts gold</strong> by 16
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('five figures')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === 'five figures'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === 'five figures' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Scaled a dropshipping store to <strong>five figures</strong> at 14
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('28 countries')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === '28 countries'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === '28 countries' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Built a global nonprofit serving <strong>28 countries</strong> at 15
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('book and paper')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === 'book and paper'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === 'book and paper' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Published a <strong>book</strong> and a <strong>research paper</strong> at 16
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('38 retention')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === '38 retention'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === '38 retention' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Shipped 8 AI features at a Series A startup, drove <strong>38% retention lift</strong>
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('tripled activation')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === 'tripled activation'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform:
+                  hoveredAchievement === 'tripled activation' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              <strong>Tripled activation rate</strong> at an Antler-backed startup
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('41 conversion')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === '41 conversion'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === '41 conversion' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Drove <strong>41% conversion lift</strong> at a VC-backed AI platform
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('12k community')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === '12k community'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === '12k community' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Host weekly founder events, <strong>grew community to 12k+</strong>
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('350k listens')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === '350k listens'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === '350k listens' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Co-host of a podcast with <strong>350k listens</strong>
+            </li>
+            <li
+              onMouseEnter={() => setHoveredAchievement('acting debut')}
+              onMouseLeave={() => setHoveredAchievement(null)}
+              style={{
+                color:
+                  hoveredAchievement === 'acting debut'
+                    ? 'rgba(248,250,252,1)'
+                    : 'rgba(226,232,240,0.9)',
+                transform: hoveredAchievement === 'acting debut' ? 'scale(1.02)' : 'scale(1)',
+                transformOrigin: 'left center',
+                transition: 'transform 140ms ease, color 140ms ease'
+              }}
+            >
+              Made my <strong>acting debut</strong> at 19
+            </li>
           </ul>
         </section>
         <section
           style={{
             position: 'relative',
             zIndex: 60,
-            padding: '2rem 2rem 4rem',
+            padding: '0.6rem 2.4rem 4.8rem',
             maxWidth: '72rem',
             margin: '0 auto'
           }}
@@ -397,7 +547,7 @@ const Home = () => {
               justifyContent: 'space-between',
               alignItems: 'center',
               gap: '1rem',
-              marginBottom: '1rem'
+              marginBottom: '1.3rem'
             }}
           >
             <h2
@@ -465,7 +615,7 @@ const Home = () => {
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '1.5rem'
+                gap: '1.85rem'
               }}
             >
               {blogPosts.slice(0, 6).map((post) => (
@@ -515,7 +665,7 @@ const Home = () => {
                       />
                     )}
                   </div>
-                  <div style={{ padding: '1rem 1rem 1.1rem' }}>
+                  <div style={{ padding: '1.15rem 1.15rem 1.25rem' }}>
                     <h3
                       style={{
                         margin: 0,
