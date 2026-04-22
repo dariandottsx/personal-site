@@ -349,14 +349,14 @@ const Home = () => {
           </nav>
           <ul
             style={{
-              margin: '2.6rem auto 2.6rem',
+              margin: '3.6rem auto 4rem',
               paddingLeft: '1.35rem',
               display: 'grid',
-              gap: '0.8rem',
+              gap: '1rem',
               color: 'rgba(226,232,240,0.9)',
               fontSize: 'clamp(0.95rem, 1.3vw, 1.2rem)',
               letterSpacing: '-0.02em',
-              lineHeight: 1.4,
+              lineHeight: 1.55,
               position: 'relative',
               zIndex: 25,
               listStyleType: 'disc',
