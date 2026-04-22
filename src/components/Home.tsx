@@ -3,15 +3,12 @@ import { useEffect, useMemo, useState } from 'react'
 type BlogPost = {
   id: string
   title: string
-  excerpt: string
-  dateLabel: string
   href: string
   image?: string
 }
 
 const SUBSTACK_BASE_URL = 'https://dariansdrafts.substack.com'
-const SUBSTACK_RSS_TO_JSON_URL = 'https://api.rss2json.com/v1/api.json'
-const CORS_PROXY_URL = 'https://api.allorigins.win/raw?url='
+const SUBSTACK_API_URL = '/api/substack-posts'
 const BLOG_CACHE_KEY = 'substack_posts_cache_v3'
 const BLOG_CACHE_TTL_MS = 1000 * 60 * 20
 const BLOG_FETCH_TIMEOUT_MS = 2500
@@ -64,76 +61,9 @@ const Home = () => {
   )
 
   useEffect(() => {
-    const publicationOrigin = SUBSTACK_BASE_URL.replace(/\/$/, '')
-
     type CachedBlogPayload = {
       fetchedAt: number
       posts: BlogPost[]
-    }
-
-    const normalizeTitle = (value: string) =>
-      value
-        .replace(/<[^>]+>/g, '')
-        .replace(/&amp;/g, '&')
-        .replace(/&quot;/g, '"')
-        .trim()
-
-    const normalizeText = (value: string) =>
-      value
-        .replace(/<[^>]+>/g, '')
-        .replace(/\s+/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&quot;/g, '"')
-        .trim()
-
-    const formatDateLabel = (dateValue: string) => {
-      const parsedDate = new Date(dateValue)
-      if (Number.isNaN(parsedDate.getTime())) return ''
-      return parsedDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    }
-
-    const parseHtmlImage = (html: string) => {
-      const srcMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i)
-      return srcMatch?.[1]
-    }
-
-    const parseMetaImage = (html: string) => {
-      const ogImage =
-        html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/i)?.[1] ??
-        html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["'][^>]*>/i)?.[1]
-
-      if (ogImage) return ogImage
-
-      const twitterImage =
-        html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["'][^>]*>/i)?.[1] ??
-        html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["'][^>]*>/i)?.[1]
-
-      return twitterImage
-    }
-
-    const getNodeText = (node: Element, tagName: string) => {
-      const match = node.getElementsByTagName(tagName)[0]
-      return match?.textContent ?? ''
-    }
-
-    const extractImageFromItemNode = (node: Element, description: string) => {
-      const mediaContent = node.getElementsByTagName('media:content')[0]?.getAttribute('url')
-      const mediaThumbnail = node.getElementsByTagName('media:thumbnail')[0]?.getAttribute('url')
-      const enclosure = node.getElementsByTagName('enclosure')[0]?.getAttribute('url')
-      const contentEncoded = getNodeText(node, 'content:encoded')
-      const imageFromEncoded = parseHtmlImage(contentEncoded)
-      const imageFromDescription = parseHtmlImage(description)
-
-      return mediaContent || mediaThumbnail || enclosure || imageFromEncoded || imageFromDescription
-    }
-
-    const toTimestamp = (dateValue: string) => {
-      const parsed = new Date(dateValue).getTime()
-      return Number.isNaN(parsed) ? 0 : parsed
     }
 
     const fetchWithTimeout = async (url: string, timeoutMs = BLOG_FETCH_TIMEOUT_MS) => {
@@ -145,119 +75,6 @@ const Home = () => {
       } finally {
         window.clearTimeout(timeoutId)
       }
-    }
-
-    const loadFromRssXml = async () => {
-      const rssUrl = `${publicationOrigin}/feed`
-      const proxiedRssUrl = `${CORS_PROXY_URL}${encodeURIComponent(rssUrl)}`
-      const response = await fetchWithTimeout(proxiedRssUrl)
-      if (!response.ok) throw new Error('RSS proxy request failed.')
-
-      const xmlText = await response.text()
-      if (!xmlText) throw new Error('RSS proxy returned empty response.')
-
-      const parser = new DOMParser()
-      const xmlDocument = parser.parseFromString(xmlText, 'application/xml')
-      const parseError = xmlDocument.querySelector('parsererror')
-      if (parseError) throw new Error('Could not parse RSS feed XML.')
-
-      const itemNodes = Array.from(xmlDocument.querySelectorAll('item')).slice(0, 6)
-      if (itemNodes.length === 0) throw new Error('No RSS items found from proxy.')
-
-      const parsedPosts = itemNodes.map((node, index) => {
-        const title = getNodeText(node, 'title')
-        const link = getNodeText(node, 'link')
-        const pubDate = getNodeText(node, 'pubDate')
-        const description = getNodeText(node, 'description')
-        const image = extractImageFromItemNode(node, description)
-
-        return {
-          sortTime: toTimestamp(pubDate),
-          id: getNodeText(node, 'guid') || `${link}-${index}`,
-          title: normalizeTitle(title),
-          excerpt: normalizeText(description),
-          dateLabel: formatDateLabel(pubDate),
-          href: link,
-          image
-        }
-      })
-
-      return parsedPosts
-        .filter((post) => post.title && post.href)
-        .sort((a, b) => b.sortTime - a.sortTime)
-        .slice(0, 6)
-        .map(({ sortTime: _sortTime, ...post }) => post)
-    }
-
-    const loadFromRssJson = async () => {
-      const rssUrl = encodeURIComponent(`${publicationOrigin}/feed`)
-      const response = await fetchWithTimeout(`${SUBSTACK_RSS_TO_JSON_URL}?rss_url=${rssUrl}`)
-      if (!response.ok) throw new Error('RSS fallback request failed.')
-
-      const payload = (await response.json()) as {
-        items?: Array<{
-          guid: string
-          title: string
-          pubDate: string
-          link: string
-          description?: string
-          thumbnail?: string
-        }>
-      }
-
-      if (!payload.items || payload.items.length === 0) {
-        throw new Error('No RSS items found.')
-      }
-
-      const parsedItems = payload.items
-        .map((item) => ({
-          sortTime: toTimestamp(item.pubDate),
-          id: item.guid || item.link,
-          title: normalizeTitle(item.title),
-          excerpt: normalizeText(item.description ?? ''),
-          dateLabel: formatDateLabel(item.pubDate),
-          href: item.link,
-          image: item.thumbnail || parseHtmlImage(item.description ?? '')
-        }))
-        .sort((a, b) => b.sortTime - a.sortTime)
-        .slice(0, 6)
-        .map(({ sortTime: _sortTime, ...post }) => post)
-
-      return parsedItems
-    }
-
-    const resolvePostImageFromPage = async (postUrl: string) => {
-      const proxiedPostUrl = `${CORS_PROXY_URL}${encodeURIComponent(postUrl)}`
-      const response = await fetchWithTimeout(proxiedPostUrl)
-      if (!response.ok) throw new Error('Post page fetch failed.')
-
-      const html = await response.text()
-      if (!html) return undefined
-
-      return parseMetaImage(html) || parseHtmlImage(html)
-    }
-
-    const enrichPostsWithPageImages = async (posts: BlogPost[]) => {
-      const postsToCheck = posts.slice(0, 6)
-      if (postsToCheck.length === 0) return posts
-
-      const imageResults = await Promise.all(
-        postsToCheck.map(async (post) => {
-          try {
-            const image = await resolvePostImageFromPage(post.href)
-            return { id: post.id, image }
-          } catch {
-            return { id: post.id, image: undefined }
-          }
-        })
-      )
-
-      const imageById = new Map(imageResults.map((item) => [item.id, item.image]))
-
-      return posts.map((post) => ({
-        ...post,
-        image: imageById.get(post.id) || post.image
-      }))
     }
 
     const readCachedPosts = () => {
@@ -283,21 +100,20 @@ const Home = () => {
       }
     }
 
-    const firstSuccessful = async <T,>(jobs: Array<() => Promise<T>>) =>
-      new Promise<T>((resolve, reject) => {
-        let rejections = 0
+    const loadFromApi = async () => {
+      const response = await fetchWithTimeout(SUBSTACK_API_URL)
+      if (!response.ok) throw new Error('Substack API request failed.')
 
-        jobs.forEach((job) => {
-          job()
-            .then((value) => resolve(value))
-            .catch(() => {
-              rejections += 1
-              if (rejections === jobs.length) {
-                reject(new Error('All feed sources failed.'))
-              }
-            })
-        })
-      })
+      const payload = (await response.json()) as {
+        posts?: BlogPost[]
+      }
+
+      if (!payload.posts || !Array.isArray(payload.posts) || payload.posts.length === 0) {
+        throw new Error('No posts found from Substack API.')
+      }
+
+      return payload.posts.slice(0, 6)
+    }
 
     const loadPosts = async () => {
       const cached = readCachedPosts()
@@ -315,10 +131,9 @@ const Home = () => {
       if (isCacheFresh) return
 
       try {
-        const freshPosts = await firstSuccessful<BlogPost[]>([loadFromRssXml, loadFromRssJson])
-        const postsWithImages = await enrichPostsWithPageImages(freshPosts)
-        setBlogPosts(postsWithImages)
-        writeCachedPosts(postsWithImages)
+        const freshPosts = await loadFromApi()
+        setBlogPosts(freshPosts)
+        writeCachedPosts(freshPosts)
       } catch {
         if (!cached?.posts?.length) {
           setBlogError('Could not load Substack posts right now.')
