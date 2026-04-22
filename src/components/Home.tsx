@@ -9,8 +9,7 @@ type BlogPost = {
 
 const SUBSTACK_BASE_URL = 'https://dariansdrafts.substack.com'
 const SUBSTACK_API_URL = '/api/substack-posts'
-const BLOG_CACHE_KEY = 'substack_posts_cache_v3'
-const BLOG_CACHE_TTL_MS = 1000 * 60 * 20
+const BLOG_CACHE_KEY = 'substack_posts_cache_v4'
 const BLOG_FETCH_TIMEOUT_MS = 2500
 
 const Home = () => {
@@ -117,8 +116,6 @@ const Home = () => {
 
     const loadPosts = async () => {
       const cached = readCachedPosts()
-      const isCacheFresh = cached ? Date.now() - cached.fetchedAt < BLOG_CACHE_TTL_MS : false
-
       if (cached?.posts?.length) {
         setBlogPosts(cached.posts)
         setIsLoadingBlog(false)
@@ -128,7 +125,8 @@ const Home = () => {
 
       setBlogError(null)
 
-      if (isCacheFresh) return
+      // Always revalidate in the background so live updates appear quickly.
+      // Cache is still used for instant paint before the network request resolves.
 
       try {
         const freshPosts = await loadFromApi()
