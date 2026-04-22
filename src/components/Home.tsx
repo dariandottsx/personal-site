@@ -28,6 +28,45 @@ const Home = () => {
     { label: 'Podcast', href: 'https://podcasts.apple.com/us/podcast/truetalks/id1489817610' }
   ]
 
+  const projects = [
+    {
+      title: 'CURaise',
+      subtitle: 'fundraising for students',
+      href: 'https://www.curaise.app/',
+      image: '/projects/curaise.jpg'
+    },
+    {
+      title: 'Lunch at Cornell',
+      subtitle: 'connecting students for lunch',
+      href: 'https://lunchatcornell.com/',
+      image: '/projects/lunch.jpg'
+    },
+    {
+      title: 'Magnum',
+      subtitle: 'budget intelligence for films',
+      href: 'https://meetmagnum.com/',
+      image: '/projects/magnum.jpg'
+    },
+    {
+      title: 'Story Line',
+      subtitle: 'AI storyboard editor',
+      href: 'https://devpost.com/software/storyline-bkux3n',
+      image: '/storyline.jpg'
+    },
+    {
+      title: 'Stealth',
+      subtitle: 'heatmap for real estate agents',
+      href: 'https://cornelldatastrategy.com/projects',
+      image: '/stealth.jpg'
+    },
+    {
+      title: 'Academix',
+      subtitle: 'nonprofit for educational in kenya',
+      href: 'https://gbc-education.org/news-events/teen-tutors-donate-to-help-educate-young-people-around-the-world/',
+      image: '/academix.jpg'
+    }
+  ]
+
   const createRandomStar = (id: number) => {
     const size = Math.random() > 0.75 ? 2 : 1
     return {
@@ -531,6 +570,99 @@ const Home = () => {
               Made my <strong>acting debut</strong> at 19
             </li>
           </ul>
+        </section>
+        <section
+          style={{
+            position: 'relative',
+            zIndex: 60,
+            padding: '0.6rem 2.4rem 2.8rem',
+            maxWidth: '72rem',
+            margin: '0 auto'
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '1rem',
+              marginBottom: '1.3rem'
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                color: '#f8fafc',
+                fontSize: 'clamp(1.25rem, 2vw, 1.6rem)',
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                fontFamily: 'Inter, sans-serif'
+              }}
+            >
+              Projects
+            </h2>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '1.85rem'
+            }}
+          >
+            {projects.map((project) => (
+              <a
+                key={project.title}
+                href={project.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  textDecoration: 'none',
+                  background: 'rgba(2,6,23,0.72)',
+                  border: '1px solid rgba(148,163,184,0.18)',
+                  borderRadius: '0.75rem',
+                  overflow: 'hidden',
+                  transition: 'transform 180ms ease, border-color 180ms ease',
+                  display: 'block'
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    aspectRatio: '16 / 9',
+                    background: '#0b1223',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <img
+                    src={project.image}
+                    alt=""
+                    loading="lazy"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block'
+                    }}
+                  />
+                </div>
+                <div style={{ padding: '1.15rem 1.15rem 1.25rem' }}>
+                  <h3
+                    style={{
+                      margin: 0,
+                      color: '#f8fafc',
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: '1.04rem',
+                      fontWeight: 700,
+                      lineHeight: 1.35
+                    }}
+                  >
+                    {project.title} - {project.subtitle}
+                  </h3>
+                </div>
+              </a>
+            ))}
+          </div>
         </section>
         <section
           style={{
