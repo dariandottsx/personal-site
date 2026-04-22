@@ -6,6 +6,7 @@ export type SubstackPost = {
 }
 
 const SUBSTACK_BASE_URL = 'https://dariansdrafts.substack.com'
+const SUBSTACK_RSS_TO_JSON_URL = 'https://api.rss2json.com/v1/api.json'
 const REQUEST_TIMEOUT_MS = 7000
 const MAX_POSTS = 6
 
@@ -14,6 +15,7 @@ type ArchiveItem = {
   title: string
   canonical_url?: string
   post_date: string
+  cover_image?: string
 }
 
 const decodeHtml = (value: string) =>
@@ -57,6 +59,11 @@ const parseMetaImage = (html: string) => {
   return html.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1]
 }
 
+const parseHtmlImage = (html: string) => html.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1]
+
+const sortByNewest = <T extends { sortTime: number }>(items: T[]) =>
+  items.slice().sort((a, b) => b.sortTime - a.sortTime)
+
 const fetchImageForPost = async (href: string) => {
   try {
     const response = await fetchWithTimeout(href)
@@ -70,32 +77,81 @@ const fetchImageForPost = async (href: string) => {
 }
 
 export const fetchSubstackPosts = async (): Promise<SubstackPost[]> => {
-  const archiveUrl = `${SUBSTACK_BASE_URL}/api/v1/archive?sort=new`
-  const response = await fetchWithTimeout(archiveUrl)
+  const loadFromArchive = async () => {
+    const archiveUrl = `${SUBSTACK_BASE_URL}/api/v1/archive?sort=new`
+    const response = await fetchWithTimeout(archiveUrl)
 
-  if (!response.ok) {
-    throw new Error(`Substack archive request failed: ${response.status}`)
+    if (!response.ok) {
+      throw new Error(`Substack archive request failed: ${response.status}`)
+    }
+
+    const archiveItems = (await response.json()) as ArchiveItem[]
+    const recentItems = archiveItems
+      .map((item) => ({
+        ...item,
+        sortTime: new Date(item.post_date).getTime() || 0
+      }))
+      .filter((item) => item.title)
+      .sort((a, b) => b.sortTime - a.sortTime)
+      .slice(0, MAX_POSTS)
+
+    const imageResults = await Promise.all(
+      recentItems.map(async (item) => {
+        const href = item.canonical_url ?? `${SUBSTACK_BASE_URL}/p/${item.id}`
+        const ogImage = await fetchImageForPost(href)
+
+        return {
+          id: String(item.id),
+          title: decodeHtml(item.title),
+          href,
+          // Prefer page OG image, fallback to archive-provided cover image.
+          image: ogImage || item.cover_image
+        } satisfies SubstackPost
+      })
+    )
+
+    return imageResults
   }
 
-  const archiveItems = (await response.json()) as ArchiveItem[]
-  const recentItems = archiveItems
-    .slice()
-    .sort((a, b) => new Date(b.post_date).getTime() - new Date(a.post_date).getTime())
-    .slice(0, MAX_POSTS)
+  const loadFromRssFallback = async () => {
+    const rssUrl = encodeURIComponent(`${SUBSTACK_BASE_URL}/feed`)
+    const response = await fetchWithTimeout(`${SUBSTACK_RSS_TO_JSON_URL}?rss_url=${rssUrl}`)
+    if (!response.ok) {
+      throw new Error(`RSS fallback request failed: ${response.status}`)
+    }
 
-  const imageResults = await Promise.all(
-    recentItems.map(async (item) => {
-      const href = item.canonical_url ?? `${SUBSTACK_BASE_URL}/p/${item.id}`
-      const image = await fetchImageForPost(href)
+    const payload = (await response.json()) as {
+      items?: Array<{
+        guid?: string
+        title?: string
+        pubDate?: string
+        link?: string
+        thumbnail?: string
+        description?: string
+      }>
+    }
 
-      return {
-        id: String(item.id),
-        title: decodeHtml(item.title),
-        href,
-        image
-      } satisfies SubstackPost
-    })
-  )
+    if (!payload.items || payload.items.length === 0) {
+      throw new Error('No RSS items found.')
+    }
 
-  return imageResults
+    return sortByNewest(
+      payload.items.map((item, index) => ({
+        sortTime: new Date(item.pubDate ?? '').getTime() || 0,
+        id: item.guid || item.link || `rss-${index}`,
+        title: decodeHtml(item.title ?? ''),
+        href: item.link ?? SUBSTACK_BASE_URL,
+        image: item.thumbnail || parseHtmlImage(item.description ?? '')
+      }))
+    )
+      .filter((post) => post.title && post.href)
+      .slice(0, MAX_POSTS)
+      .map(({ sortTime: _sortTime, ...post }) => post)
+  }
+
+  try {
+    return await loadFromArchive()
+  } catch {
+    return loadFromRssFallback()
+  }
 }
