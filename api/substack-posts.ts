@@ -1,4 +1,4 @@
-import { fetchSubstackPosts } from '../server/substack'
+import { fetchSubstackPosts } from '../server/substack.js'
 
 type ApiResponse = {
   setHeader: (name: string, value: string) => void
