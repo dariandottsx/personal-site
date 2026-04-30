@@ -316,7 +316,7 @@ const Home = () => {
               fontWeight: 600
             }}
           >
-            19 y/o developer building the future of film.
+            19 y/o developer building the future.
           </p>
           <nav
             aria-label="Social links"
