@@ -554,21 +554,6 @@ const Home = () => {
             >
               Co-host of a podcast with <strong>350k listens</strong>
             </li>
-            <li
-              onMouseEnter={() => setHoveredAchievement('acting debut')}
-              onMouseLeave={() => setHoveredAchievement(null)}
-              style={{
-                color:
-                  hoveredAchievement === 'acting debut'
-                    ? 'rgba(248,250,252,1)'
-                    : 'rgba(226,232,240,0.9)',
-                transform: hoveredAchievement === 'acting debut' ? 'scale(1.02)' : 'scale(1)',
-                transformOrigin: 'left center',
-                transition: 'transform 140ms ease, color 140ms ease'
-              }}
-            >
-              Made my <strong>acting debut</strong> at 19
-            </li>
           </ul>
         </section>
         <section
